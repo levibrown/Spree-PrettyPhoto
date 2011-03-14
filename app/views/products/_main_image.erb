@@ -1,0 +1,5 @@
+<% if product.images[1..-1].size == 0 %>
+   <%= link_to product_image(@product), @product.images.first.attachment.url(:large), :rel => "prettyPhoto" %>
+<% else %>
+   <%= link_to product_image(@product), @product.images.first.attachment.url(:large), :rel => "prettyPhoto[pp_gal]" %>
+<% end %>

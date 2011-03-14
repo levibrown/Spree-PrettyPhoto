@@ -1,0 +1,80 @@
+<%= form_for :order, :url => populate_orders_url do |f| %>
+<%= hook :inside_product_cart_form do %>
+
+  <% if product_price(@product) %>
+    <%= hook :product_price do %>
+      <p class="prices">
+        <%= t("price") %>
+        <br />
+        <span class="price selling"><%= product_price(@product) %></span>
+      </p>
+    <% end %>
+  <% end %>
+
+  <% if @product.has_variants? %>
+    <div id="product-variants">
+      <h2><%= t('variants') %></h2>
+      <ul>
+        <%  has_checked = false
+        @product.variants.active.each_with_index do |v,index|
+          next if v.option_values.empty? || (!v.in_stock && !Spree::Config[:show_zero_stock_products])
+          checked = !has_checked && (v.in_stock || Spree::Config[:allow_backorders])
+          has_checked = true if checked %>
+          <li>
+            <label>
+              <%= radio_button_tag "products[#{@product.id}]", v.id, checked, :disabled => !v.in_stock && !Spree::Config[:allow_backorders] %>
+              <span class="variant-description">
+                <%= variant_options v %>
+              </span>
+              <% if variant_price_diff v %>
+                <span class="price diff"><%= variant_price_diff v %></span>
+              <% end %>
+            </label>
+          </li>
+        <% end%>
+      </ul>
+    </div>
+  <% end%>
+  <% if @product.has_stock? || Spree::Config[:allow_backorders] %>
+    <%= text_field_tag (@product.has_variants? ? :quantity : "variants[#{@product.master.id}]"),
+      1, :class => "title", :size => 3 %>
+    &nbsp;
+    <button type='submit' class='large primary'>
+      <%= image_tag('/images/add-to-cart.png') + t('add_to_cart') %>
+    </button>
+  <% else %>
+    <%= content_tag('strong', t('out_of_stock')) %>
+  <% end %>
+
+<% end %>
+<% end %>
+
+<% content_for :head do %>
+  <%= javascript_include_tag 'jquery.prettyPhoto.js' %>
+  <%= stylesheet_link_tag 'prettyPhoto.css' %> 
+
+  <script type="text/javascript" charset="utf-8">
+
+	$(document).ready(function(){
+		$("a[rel^='prettyPhoto']").prettyPhoto({
+			animation_speed: 'fast', /* fast/slow/normal */
+			slideshow: false, /* false OR interval time in ms */
+			autoplay_slideshow: false, /* true/false */
+			opacity: 0.60, /* Value between 0 and 1 */
+			show_title: false, /* true/false */
+			allow_resize: true, /* Resize the photos bigger than viewport. true/false */
+			default_width: 600,
+			default_height: 444,
+			counter_separator_label: '/', /* The separator for the gallery counter 1 "of" 2 */
+			theme: 'dark_square', /* light_rounded / dark_rounded / light_square / dark_square / facebook */
+			hideflash: false, /* Hides all the flash object on a page, set to TRUE if flash appears over prettyPhoto */
+			wmode: 'opaque', /* Set the flash wmode attribute */
+			autoplay: true, /* Automatically start videos: True/False */
+			modal: false, /* If set to true, only the close button will close the window */
+			overlay_gallery: true, /* If set to true, a gallery will overlay the fullscreen image on mouse over */
+			keyboard_shortcuts: true, /* Set to false if you open forms inside prettyPhoto */
+		});
+	});
+  </script>
+
+<% end %>
